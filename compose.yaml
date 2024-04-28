@@ -1,0 +1,21 @@
+services:
+  db:
+    image: autosdb
+    ports:
+      - "5432:5432"
+    environment:
+      - POSTGRES_PASSWORD=${POSTGRES_PASSWORD}
+    volumes:
+      - ./pgdata/custom/workingExampleData:/var/lib/postgresql/data
+    env_file: "./.env"
+  app:
+    image: "autosapi"
+    ports:
+      - "8080:8080"
+    env_file: "./.env"
+    depends_on:
+      - db
+  analytics:
+    image: "autos-analytics-api"
+    ports:
+      - "8000:8000"
