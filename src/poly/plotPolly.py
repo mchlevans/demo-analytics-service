@@ -3,6 +3,8 @@ import matplotlib.pyplot as plt
 import pandas as pd
 import requests
 import mpld3
+from flask import current_app as app
+from ..AnalyticsAPIError import AnalyticsAPIError
 
 def plotPolly(model, independent_variable, dependent_variabble, Name):
     x_new = np.linspace(15, 55, 100)
@@ -23,8 +25,18 @@ def plotPolly(model, independent_variable, dependent_variabble, Name):
 
     return figure
 
+def fetchData():
+    try:
+        app.logger.info('attempt to fetch api data')
+        data = requests.get("http://app:8080/vehicle-stream")
+        data.raise_for_status()
+        return data
+    except requests.exceptions.RequestException as err:
+        raise AnalyticsAPIError(500, ["unable to retrieve data"])
+    
 def buildDf():
-    data = requests.get("http://app:8080/vehicle-stream")
+    data = fetchData()
+    app.logger.info('attempt to build df from data')
     df = pd.json_normalize(data.json())
     return df
 
@@ -41,5 +53,5 @@ def polyExample(xVarName, yVarName):
     # generate graph
     fig = plotPolly(p, x, y, 'highwayMpg')
     
-    # return json version of graph
+    # return html version of graph
     return mpld3.fig_to_html(fig, template_type='simple')
