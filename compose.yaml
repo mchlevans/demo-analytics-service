@@ -19,3 +19,11 @@ services:
     image: "autos-analytics-api"
     ports:
       - "8000:8000"
+  proxy:
+    image: autos-proxy
+    ports:
+        - "80:80"
+    expose:
+        - "80"
+    depends_on:
+      - app
