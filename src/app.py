@@ -32,10 +32,11 @@ def app():
         except ValidationError as err:
             app.logger.info('caught validation exception in analytcis api')
             raise AnalyticsAPIError(status=400, errors=err.messages)
-
         
-        figure = polyExample(xVarName = body['xVarName'], 
-                             yVarName = body['yVarName'])         
+        figure = polyExample(xVarNames = body['xVarNames'], 
+                             yVarName = body['yVarName'],
+                             polynomial = body['polynomial']
+        )
         
         # to do: encapsulate success response body
         return {

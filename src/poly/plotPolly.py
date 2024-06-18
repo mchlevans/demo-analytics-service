@@ -1,68 +1,138 @@
 import numpy as np
-import matplotlib.pyplot as plt
+import matplotlib
+import scipy
 from matplotlib.figure import Figure
 import pandas as pd
 import requests
 import mpld3
 from flask import current_app as app
+
+import scipy.stats
+from sklearn.preprocessing import PolynomialFeatures
+from sklearn.linear_model import LinearRegression
+
 from ..AnalyticsAPIError import AnalyticsAPIError
 
-# need to update this to use matplotlib.figure as pyplot will
-# cause memmory leaks
+
+#################################################################
+# "It is not necessary to avoid using the pyplot interface in 
+# order to create figures without a graphical front-end - 
+# simply setting the backend to "Agg" would be sufficient."
+#################################################################
+# potentially remove
+matplotlib.use('agg')
 
 
-def plotPolly(model, xData, yData, Name):
-    # generate data for predicted trend line
-    xDataPredicted = np.linspace(
-        start = xData.min(), 
-        stop = xData.max(), 
-        num = 100
-    )
-    
-    yDataPredicted = np.polynomial.polynomial.polyval(xDataPredicted, model)
+def singelVarChart(xTrainData, yTrainData, xPlotData, yHat, xAxisLabel, yAxisLabel):
+    figure = Figure()
+    ax = figure.subplots()
+    ax.plot(xTrainData, yTrainData, '.', xPlotData, yHat, '-')
+    ax.set_xlabel(xAxisLabel)
+    ax.set_ylabel(yAxisLabel)
+    ax.set_title("Predicted Value vs Observed Data Points")
+    return figure
 
-    fig = Figure()
-    
-    # add previous data as scatterplot, predicted as line
-    ax = fig.subplots()
-    ax.plot(xDataPredicted, yDataPredicted)
-    ax.plot(xData, yData, "o")
 
-    return fig
+def multiVarChart(xTrainData, yTrainData, yHat, xAxisLabel, yAxisLabel):
+    figure = Figure()
+    ax = figure.subplots()
+    ax.plot(xTrainData, yTrainData, '-', label = 'Observed Distribution')
+    ax.plot(xTrainData, yHat, '-', label = 'Predicted Distribution')
+    ax.legend()
+    ax.set_xlabel(xAxisLabel)
+    ax.set_ylabel(yAxisLabel, labelpad = 30)
+    ax.set_title("Distribution Plot of Predicted Value Using Training Data vs Training Data Distribution")
+    return figure
+
 
 def fetchData():
     try:
+        # route = "http://app:8080/vehicle?limit=1000&offset=0"
+        route = "http://localhost:8080/vehicle?limit=1000&offset=0"
         app.logger.info('attempt to fetch api data')
-        data = requests.get("http://app:8080/vehicle?limit=1000&offset=0")
+        data = requests.get(route)
         data.raise_for_status()
         return data
     except requests.exceptions.RequestException as err:
         raise AnalyticsAPIError(500, ["unable to retrieve data"])
-    
+
+
 def buildDf():
     data = fetchData()
     app.logger.info('attempt to build df from data')
     df = pd.json_normalize(data.json())
     return df
 
-def polyExample(xVarName, yVarName):
+
+def polyExample(xVarNames: list, yVarName: str, polynomial: int):
     # prep data
     df = buildDf()
-    
-    # create model
-    x = df[xVarName]
-    y = df[yVarName]
-    f = np.polynomial.polynomial.polyfit(x, y, 3)
 
-    # p = np.polynomial.Polynomial(f)
+    # get queried data
+    xTrainData = df[xVarNames]
+    yTrainData = df[yVarName]
 
-    # generate graph
-    fig = plotPolly(
-        model = f, 
-        xData = x, 
-        yData = y,
-        Name = xVarName
-    )
+    # transform polynomials
+    pr = PolynomialFeatures(degree = polynomial)
+    xPr = pr.fit_transform(xTrainData)
+
+    # generate model from training data
+    lm = LinearRegression()
+    lm.fit(xPr, yTrainData)
+
+    fig = '' # generated figure
+    if len(xVarNames) == 1:
+        ###########################################################
+        # single variable model - plot vehicle variable on Y axis #
+        ###########################################################
+        
+        # x values for graphing
+        xPlotData = np.linspace(
+            start = xTrainData.min(), 
+            stop = xTrainData.max(), 
+            num = 100
+        )
+        
+        # generate predictions using x data generated for graphing purposes
+        xPlotDataPr = pr.fit_transform(xPlotData)
+        yHat = lm.predict(xPlotDataPr)
+        
+        # get graph
+        fig = singelVarChart(
+            xTrainData, 
+            yTrainData,
+            xPlotData,
+            yHat = yHat,
+            xAxisLabel = xVarNames[0],
+            yAxisLabel = 'Price'
+        )
+    else:
+        ####################################################
+        # multivariate model - plot distribution on Y axis #
+        ####################################################
+
+        # get predicted values for training set
+        yHatTrainingData = lm.predict(xPr)
+
+        # use training values and predicted values to generate kde models
+        actualKde = scipy.stats.gaussian_kde(yTrainData)
+        predictedKde = scipy.stats.gaussian_kde(yHatTrainingData)
+        
+        # x values for graphing
+        xPlotData = np.linspace(
+            start = yTrainData.min(), 
+            stop = yTrainData.max(), 
+            num = 200
+        )
+
+        # get graph
+        fig = multiVarChart(
+            xPlotData,
+            actualKde(xPlotData),
+            predictedKde(xPlotData),
+            xAxisLabel = 'Price',
+            yAxisLabel = 'Proportion of Cars'
+        )
     
     # return html version of graph
-    return mpld3.fig_to_html(fig, template_type='simple')
+    return mpld3.fig_to_html(fig, template_type = 'simple')

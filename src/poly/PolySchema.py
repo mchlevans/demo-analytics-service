@@ -6,5 +6,6 @@ class FigureSizeSchema(Schema):
 
 class PolySchema(Schema):
     size = fields.Nested(FigureSizeSchema, required=False)
-    xVarName = fields.Str(required=True)
+    xVarNames = fields.List(fields.Str, required=True)
     yVarName = fields.Str(required=True)
+    polynomial = fields.Int(required=True)

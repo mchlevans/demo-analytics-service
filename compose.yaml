@@ -15,10 +15,10 @@ services:
     env_file: "./.env"
     depends_on:
       - db
-  analytics:
-    image: "autos-analytics-api"
-    ports:
-      - "8000:8000"
+  # analytics:
+  #   image: "autos-analytics-api"
+  #   ports:
+  #     - "8000:8000"
   proxy:
     image: autos-proxy
     ports:
