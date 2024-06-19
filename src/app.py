@@ -1,12 +1,14 @@
 import logging
 from flask import Flask, request
 from marshmallow import ValidationError
+from .cache import cache
 from .poly.plotPolly import polyExample
 from .poly.PolySchema import PolySchema
 from .AnalyticsAPIError import AnalyticsAPIError
 
 def app():    
     app = Flask(__name__)
+    cache.init_app(app)
 
     # setup logging using gunicorn configs
     if __name__ != '__main__':

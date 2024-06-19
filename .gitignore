@@ -1,5 +1,6 @@
 .venv/
 .env
+localEnv.sh
 
 *.pyc
 __pycache__/

@@ -6,11 +6,13 @@ import pandas as pd
 import requests
 import mpld3
 from flask import current_app as app
+from os import environ
 
 import scipy.stats
 from sklearn.preprocessing import PolynomialFeatures
 from sklearn.linear_model import LinearRegression
 
+from ..cache import cache
 from ..AnalyticsAPIError import AnalyticsAPIError
 
 
@@ -21,7 +23,6 @@ from ..AnalyticsAPIError import AnalyticsAPIError
 #################################################################
 # potentially remove
 matplotlib.use('agg')
-
 
 def singelVarChart(xTrainData, yTrainData, xPlotData, yHat, xAxisLabel, yAxisLabel):
     figure = Figure()
@@ -45,13 +46,19 @@ def multiVarChart(xTrainData, yTrainData, yHat, xAxisLabel, yAxisLabel):
     return figure
 
 
+@cache.cached(timeout=50, key_prefix='db_data')
 def fetchData():
     try:
-        # route = "http://app:8080/vehicle?limit=1000&offset=0"
-        route = "http://localhost:8080/vehicle?limit=1000&offset=0"
+        host = environ['INTERFACE_API_HOST']
+        port = environ['INTERFACE_API_PORT']
+        route = "http://" + host + ":" + port + "/vehicle?limit=1000&offset=0"
+        
         app.logger.info('attempt to fetch api data')
         data = requests.get(route)
+
+        # throw error if bad response
         data.raise_for_status()
+
         return data
     except requests.exceptions.RequestException as err:
         raise AnalyticsAPIError(500, ["unable to retrieve data"])
