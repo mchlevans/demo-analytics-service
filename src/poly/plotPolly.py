@@ -12,8 +12,8 @@ import scipy.stats
 from sklearn.preprocessing import PolynomialFeatures
 from sklearn.linear_model import LinearRegression
 
-from ..cache import cache
-from ..AnalyticsAPIError import AnalyticsAPIError
+from ..common.cache import cache
+from ..common.ApiErrorResponse import ApiErrorResponse
 
 
 #################################################################
@@ -61,7 +61,7 @@ def fetchData():
 
         return data
     except requests.exceptions.RequestException as err:
-        raise AnalyticsAPIError(500, ["unable to retrieve data"])
+        raise ApiErrorResponse(500, ["unable to retrieve data"])
 
 
 def buildDf():
