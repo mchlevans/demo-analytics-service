@@ -13,18 +13,17 @@ def fetchAutosData():
         route = "http://" + host + ":" + port + "/vehicle?limit=1000&offset=0"
         
         app.logger.info('attempt to fetch api data')
-        data = requests.get(route)
-
+        response = requests.get(route)
         # throw error if bad response
-        data.raise_for_status()
+        response.raise_for_status()
 
-        return data
+        return response.json()['data']
     except requests.exceptions.RequestException as err:
-        raise ApiErrorResponse(500, ["unable to retrieve data"])
+        raise ApiErrorResponse(500, ['unable to retrieve data'])
 
 
 def getAutosDf():
     data = fetchAutosData()
     app.logger.info('attempt to build df from data')
-    df = pd.json_normalize(data.json())
+    df = pd.json_normalize(data)
     return df

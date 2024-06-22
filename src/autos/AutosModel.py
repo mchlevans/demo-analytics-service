@@ -28,10 +28,11 @@ class AutosModel:
         self.xTrainData = xTrainData
         self.yTrainData = yTrainData
         self.polynomial = polynomial
+        self.independentVariables = independentVariables
         
     
     def getFigure(self):
-        if len(self.xTrainData) == 1:
+        if len(self.independentVariables) == 1:
             return self.getSingleVarChart()
         return self.getMultiVarChart()
     
@@ -54,8 +55,8 @@ class AutosModel:
         figure = Figure()
         ax = figure.subplots()
         ax.plot(self.xTrainData, self.yTrainData, '.', xPlotData, yHat, '-')
-        ax.set_xlabel(self.xAxisLabel)
-        ax.set_ylabel(self.yAxisLabel)
+        ax.set_xlabel(self.independentVariables[0])
+        ax.set_ylabel("Price") # temp harcode
         ax.set_title("Predicted Value vs Observed Data Points")
 
         # return html version of graph
