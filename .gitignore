@@ -1,8 +1,10 @@
 .venv/
 .env
+localEnv.sh
+.DS_Store
 
 *.pyc
-src/__pycache__/
+__pycache__/
 
 instance/
 

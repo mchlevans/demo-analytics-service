@@ -1,12 +1,14 @@
-class AnalyticsAPIError(Exception):
-    def __init__(self, status: int, errors: list):
+class ApiSuccessResponse:
+    def __init__(self, status: int, data):
         self.status = status
-        self.errors = errors
+        self.data = data
 
     def getBody(self):
         return {
             'status': self.status,
-            'errors': self.errors
+            'data': self.data
         }
     def getStatus(self):
         return self.status
+
+
