@@ -2,8 +2,7 @@ import logging
 from flask import Flask, request
 from marshmallow import ValidationError
 from .common.cache import cache
-# from .poly.plotPolly import polyExample
-from .poly.PolySchema import PolySchema
+from .common.PolySchema import PolySchema
 from .common.ApiErrorResponse import ApiErrorResponse
 from .common.ApiSuccessResponse import ApiSuccessResponse
 
@@ -30,31 +29,6 @@ def app():
             'data': "pong"
         }
 
-
-    # @app.route("/poly", methods = ['POST'])
-    # def ployController():
-    #     body = request.json
-        
-    #     # validate request body
-    #     try:
-    #         PolySchema().load(body)
-    #     except ValidationError as err:
-    #         app.logger.info('caught validation exception in analytcis api')
-    #         raise ApiErrorResponse(status=400, errors=err.messages)
-        
-    #     figure = polyExample(xVarNames = body['xVarNames'], 
-    #                          yVarName = body['yVarName'],
-    #                          polynomial = body['polynomial']
-    #     )
-        
-    #     # to do: encapsulate success response body
-    #     return {
-    #         'status': 200,
-    #         'data': {
-    #             'figure': figure
-    #         }
-    #     }
-    
 
     @app.route("/autos-model", methods = ['POST'])
     def autosModelController():
