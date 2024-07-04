@@ -32,6 +32,9 @@ def app():
 
     @app.route("/autos-model", methods = ['POST'])
     def autosModelController():
+        if (request.headers.get('Content-Type') != 'application/json'):
+            raise ApiErrorResponse(status=400, errors=['application/json content type required'])
+        
         body = request.json
         
         # validate request body
@@ -45,9 +48,10 @@ def app():
         dataframe = getAutosDf()
         model = AutosModel(
             df = dataframe,
-            independentVariables = body['xVarNames'],
-            dependentVariable = body['yVarName'],
-            polynomial = body['polynomial']
+            independentVariables = body.get('xVarNames'),
+            dependentVariable = body.get('yVarName'),
+            polynomial = body.get('polynomial'),
+            width = body.get('width', None)
         )
         
         autosData = {

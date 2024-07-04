@@ -1,1 +1,1 @@
-docker build --tag autos-analytics-api --progress plain .
+docker build --tag analyticsapi --progress plain .

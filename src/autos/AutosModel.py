@@ -11,7 +11,10 @@ from matplotlib.figure import Figure
 
 
 class AutosModel:
-    def __init__(self, df: pd.DataFrame, independentVariables: list, dependentVariable: list, polynomial: int):
+    pixelToInch = .0104166667
+    aspectRatio = .75 # matplotlib default
+
+    def __init__(self, df: pd.DataFrame, independentVariables: list, dependentVariable: list, polynomial: int, width: int = None):
         xTrainData = df[independentVariables]
         yTrainData = df[dependentVariable]
 
@@ -29,6 +32,7 @@ class AutosModel:
         self.yTrainData = yTrainData
         self.polynomial = polynomial
         self.independentVariables = independentVariables
+        self.width = width if width != None else 550
         
     
     def getFigure(self):
@@ -52,7 +56,7 @@ class AutosModel:
         yHat = self.lm.predict(xPlotDataTransformed)
         
         # build figure
-        figure = Figure()
+        figure = Figure(figsize=[self.getFigureWidth(), self.getFigureHeight()])
         ax = figure.subplots()
         ax.plot(self.xTrainData, self.yTrainData, '.', xPlotData, yHat, '-')
         ax.set_xlabel(self.independentVariables[0])
@@ -80,7 +84,7 @@ class AutosModel:
         )
 
         # build figure
-        figure = Figure()
+        figure = Figure(figsize=[self.getFigureWidth(), self.getFigureHeight()])
         ax = figure.subplots()
         ax.plot(xPlotData, actualKde(xPlotData), '-', label = 'Observed Distribution')
         ax.plot(xPlotData, predictedKde(xPlotData), '-', label = 'Predicted Distribution')
@@ -100,3 +104,8 @@ class AutosModel:
     def getMse(self):
         return mean_squared_error(self.yTrainData, self.lm.predict(self.xTrainTransformed))
 
+    def getFigureWidth(self):
+        return self.width * self.pixelToInch
+    
+    def getFigureHeight(self):
+        return self.width * self.pixelToInch * self.aspectRatio
