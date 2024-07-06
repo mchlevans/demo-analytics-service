@@ -5,7 +5,7 @@ import pandas as pd
 from ..common.cache import cache
 from ..common.ApiErrorResponse import ApiErrorResponse
 
-@cache.cached(timeout=50, key_prefix='db_data')
+@cache.cached(timeout=60 * 60 * 24 * 21, key_prefix='db_data')
 def fetchAutosData():
     try:
         host = environ['INTERFACE_API_HOST']
